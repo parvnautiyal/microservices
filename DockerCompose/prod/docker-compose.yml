@@ -1,0 +1,80 @@
+version: "3.8"
+
+services:
+
+ mongo: 
+  image: mongo:latest
+  mem_limit: 700m
+  ports: 
+   - "27017:27017"
+  networks: 
+   - microservice-network
+ 
+ configserver:
+  image: parvnautiyal/configserver:latest
+  mem_limit: 700m
+  ports: 
+   - "8084:8084"
+  networks: 
+   - microservice-network
+ 
+ accounts:
+  image: parvnautiyal/accounts:latest
+  mem_limit: 700m
+  ports: 
+   - "8080:8080"
+  networks: 
+   - microservice-network
+  depends_on: 
+   - configserver
+  deploy: 
+   restart_policy: 
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+  environment: 
+   SPRING_PROFILES_ACTIVE: prod
+   SPRING_CONFIG_IMPORT: configserver:http://configserver:8084/
+  
+ loans: 
+  image: parvnautiyal/loans:latest
+  mem_limit: 700m
+  ports:
+   - "8081:8081"
+  networks:
+   - microservice-network
+  depends_on: 
+   - configserver
+  deploy: 
+   restart_policy: 
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+  environment: 
+   SPRING_PROFILES_ACTIVE: prod
+   SPRING_CONFIG_IMPORT: configserver:http://configserver:8084/
+   
+ cards:
+  image: parvnautiyal/cards:latest
+  mem_limit: 700m
+  ports:
+   - "8083:8083"
+  networks:
+   - microservice-network
+  depends_on: 
+   - configserver
+  deploy: 
+   restart_policy: 
+    condition: on-failure
+    delay: 5s
+    max_attempts: 3
+    window: 120s
+  environment: 
+   SPRING_PROFILES_ACTIVE: prod
+   SPRING_CONFIG_IMPORT: configserver:http://configserver:8084/
+
+networks:
+ microservice-network: 
+   
